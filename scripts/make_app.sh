@@ -32,7 +32,7 @@ mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"
 cp "$REPO_ROOT/Resources/INSTALL.txt" "$STAGE/INSTALL.txt"
 rm -f "$OUT_DIR/EyeBreak-$VERSION.zip"
-ditto -c -k --keepParent "$STAGE" "$OUT_DIR/EyeBreak-$VERSION.zip"
+ditto -c -k "$STAGE" "$OUT_DIR/EyeBreak-$VERSION.zip"
 rm -rf "$(dirname "$STAGE")"
 
 echo "==> Done: $APP  +  $OUT_DIR/EyeBreak-$VERSION.zip"
