@@ -1,9 +1,10 @@
 import AppKit
 import SwiftUI
 
-// Small transient banners for secondary reminders (PRD P1-4): ~340×80 pt at
-// .statusBar level, top-right of the main screen, auto-dismiss after 10 s or
-// on click. A non-activating panel so it never interrupts typing focus.
+// Small transient banners for secondary reminders (PRD P1-4): 340 pt wide,
+// height sized to content, at .statusBar level, top-right of the main screen,
+// auto-dismiss after 10 s or on click. A non-activating panel so it never
+// interrupts typing focus.
 final class BannerWindowController {
     private var panel: NSPanel?
     private var dismissWork: DispatchWorkItem?
@@ -14,23 +15,12 @@ final class BannerWindowController {
         guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
         let width: CGFloat = 340
 
-        // Size the panel to fit the content rather than using a fixed height,
-        // so short messages like "Don't forget to blink" aren't dwarfed by
-        // excess blank space.
-        let hostingView = NSHostingView(rootView: BannerView(text: text) { [weak self] in
-            self?.dismiss(animated: true)
-        })
-        hostingView.frame = NSRect(x: 0, y: 0, width: width, height: 0)
-        let size = NSSize(width: width, height: hostingView.fittingSize.height)
-
-        let visible = screen.visibleFrame
-        let origin = NSPoint(
-            x: visible.maxX - size.width - 16,
-            y: visible.maxY - size.height - 16
-        )
-
+        // Build the panel at a generous temporary height, attach the hosting
+        // view (which requires a real window hierarchy for SwiftUI to lay out),
+        // force a layout pass, then shrink the panel to the measured content
+        // height. Reading fittingSize before contentView is set returns garbage.
         let panel = NSPanel(
-            contentRect: NSRect(origin: origin, size: size),
+            contentRect: NSRect(x: 0, y: 0, width: width, height: 200),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -41,7 +31,21 @@ final class BannerWindowController {
         panel.hasShadow = true
         panel.isReleasedWhenClosed = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+
+        let hostingView = NSHostingView(rootView: BannerView(text: text) { [weak self] in
+            self?.dismiss(animated: true)
+        })
         panel.contentView = hostingView
+        hostingView.layoutSubtreeIfNeeded()
+        let contentHeight = hostingView.fittingSize.height
+
+        let visible = screen.visibleFrame
+        let size = NSSize(width: width, height: contentHeight)
+        let origin = NSPoint(
+            x: visible.maxX - width - 16,
+            y: visible.maxY - contentHeight - 16
+        )
+        panel.setFrame(NSRect(origin: origin, size: size), display: false)
 
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         panel.alphaValue = reduceMotion ? 1 : 0
