@@ -27,7 +27,21 @@ final class SecondaryReminders {
     private var tearsActiveSeconds: Double = 0
     /// Daily reminders resolved per local day ("fired" or "dropped"), so a
     /// suppressed reminder is not re-attempted later the same day (no queuing).
-    private var dailyResolved: [String: String] = [:]
+    /// Persisted across restarts so a relaunch within the reminder hour doesn't
+    /// show the banner a second time.
+    private var dailyResolved: [String: String] = Self.loadDailyResolved() {
+        didSet { Self.saveDailyResolved(dailyResolved) }
+    }
+
+    private static let dailyResolvedKey = "dev.eyebreak.dailyResolved"
+
+    private static func loadDailyResolved() -> [String: String] {
+        UserDefaults.standard.dictionary(forKey: dailyResolvedKey) as? [String: String] ?? [:]
+    }
+
+    private static func saveDailyResolved(_ dict: [String: String]) {
+        UserDefaults.standard.set(dict, forKey: dailyResolvedKey)
+    }
 
     func start() {
         let timer = DispatchSource.makeTimerSource(queue: .main)
@@ -108,8 +122,8 @@ final class SecondaryReminders {
         else { return }
         // Resolve exactly once per day: shown if conditions allow, otherwise
         // dropped for today (PRD P1-4: dropped, not queued). A launch hours
-        // after the target time (fired-state is in-memory only) also resolves
-        // silently rather than reminding at an odd hour.
+        // after the target time also resolves silently rather than reminding
+        // at an odd hour (pastTarget < 60 guard below).
         dailyResolved[key] = today
         if pastTarget < 60, context.canShowBanner, breakProximityOK(context) {
             showBanner?(text())

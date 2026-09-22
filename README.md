@@ -115,7 +115,6 @@ Break reminders support comfort, but some symptoms deserve professional care. Se
 - **Screen-share detection is best effort.** EyeBreak detects display *mirroring* via CoreGraphics. Detecting active screen *capture* (e.g. a video call sharing your screen) is unreliable on modern macOS without extra permissions, so it is not attempted. Any detection failure fails toward *showing* the break, never toward silently suppressing it. You can always pause manually from the menu bar.
 - **Full-screen detection is heuristic** (frontmost app's topmost window covering a screen). Some apps may not be detected; the same fail-open policy applies.
 - **Bare-executable mode** (`swift run`) cannot register launch-at-login; use the `.app` bundle from `scripts/make_app.sh`.
-- Daily reminders (warm compress, environment) track their "already fired today" state in memory, so restarting the app within the reminder hour could show one twice.
 - **On notched MacBooks the menu-bar icon can land under the notch** — macOS places new status items leftmost, and in a crowded menu bar that slot is behind the notch: the app runs, but the icon is invisible and unclickable. Fix: Cmd-drag other menu-bar icons away to free visible space, or pin EyeBreak's position right of the notch and relaunch:
   ```sh
   defaults write dev.eyebreak.EyeBreak "NSStatusItem Preferred Position Item-0" -float 550

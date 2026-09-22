@@ -4,6 +4,9 @@ All notable changes to EyeBreak are documented here. Format follows [Keep a Chan
 
 ## [Unreleased]
 
+### Fixed
+- Daily reminders (warm compress, environment) could show twice if the app was restarted within the 60-minute reminder window; `dailyResolved` state is now persisted in `UserDefaults`.
+
 ## [0.2.2] — 2026-07-20
 
 ### Added
