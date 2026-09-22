@@ -12,7 +12,17 @@ final class BannerWindowController {
         dismiss(animated: false)
 
         guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
-        let size = NSSize(width: 340, height: 80)
+        let width: CGFloat = 340
+
+        // Size the panel to fit the content rather than using a fixed height,
+        // so short messages like "Don't forget to blink" aren't dwarfed by
+        // excess blank space.
+        let hostingView = NSHostingView(rootView: BannerView(text: text) { [weak self] in
+            self?.dismiss(animated: true)
+        })
+        hostingView.frame = NSRect(x: 0, y: 0, width: width, height: 0)
+        let size = NSSize(width: width, height: hostingView.fittingSize.height)
+
         let visible = screen.visibleFrame
         let origin = NSPoint(
             x: visible.maxX - size.width - 16,
@@ -31,9 +41,7 @@ final class BannerWindowController {
         panel.hasShadow = true
         panel.isReleasedWhenClosed = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        panel.contentView = NSHostingView(rootView: BannerView(text: text) { [weak self] in
-            self?.dismiss(animated: true)
-        })
+        panel.contentView = hostingView
 
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         panel.alphaValue = reduceMotion ? 1 : 0
@@ -84,7 +92,7 @@ private struct BannerView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(14)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color(nsColor: .windowBackgroundColor))

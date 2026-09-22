@@ -6,6 +6,8 @@ All notable changes to EyeBreak are documented here. Format follows [Keep a Chan
 
 ### Fixed
 - Daily reminders (warm compress, environment) could show twice if the app was restarted within the 60-minute reminder window; `dailyResolved` state is now persisted in `UserDefaults`.
+- Banner ("Don't forget to blink", etc.) was padded to a fixed 80 pt height regardless of content; panel now sizes to fit the text.
+- Break overlay card could appear on a secondary screen while only the scrim was visible on the primary screen; content now follows the focused window's screen (`NSScreen.main`) instead of the mouse cursor.
 
 ## [0.2.2] — 2026-07-20
 

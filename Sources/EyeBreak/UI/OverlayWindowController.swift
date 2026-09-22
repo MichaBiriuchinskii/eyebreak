@@ -142,11 +142,15 @@ final class OverlayWindowController {
         let screens = NSScreen.screens
         guard !screens.isEmpty else { return }
 
-        // Content goes on the screen with the mouse pointer; others get a
-        // plain dim (PRD §8.5).
+        // Content goes on the screen the user is looking at: prefer the screen
+        // that owns the current key window (NSScreen.main), which tracks the
+        // focused app and is more reliable than mouse position when the cursor
+        // has drifted to a secondary display. Fall back to mouse position, then
+        // the first screen.
         let mouse = NSEvent.mouseLocation
-        let contentScreen = screens.first(where: { NSMouseInRect(mouse, $0.frame, false) })
-            ?? NSScreen.main ?? screens[0]
+        let contentScreen = NSScreen.main
+            ?? screens.first(where: { NSMouseInRect(mouse, $0.frame, false) })
+            ?? screens[0]
 
         for screen in screens {
             let window = OverlayWindow(
